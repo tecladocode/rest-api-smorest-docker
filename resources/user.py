@@ -86,6 +86,8 @@ class User(MethodView):
 class TokenRefresh(MethodView):
     @jwt_required(refresh=True)
     def post(self):
+        # TODO: Add the refresh token to the blocklist so it can't be used again.
+        # Make it clear that when to add the refresh token to the blocklist will depend on the app design
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)
         return {"access_token": new_token}, 200
