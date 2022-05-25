@@ -1,7 +1,4 @@
 import pytest
-import logging
-
-LOGGER = logging.getLogger()
 
 
 @pytest.fixture()
