@@ -14,28 +14,3 @@ class ItemModel(db.Model):
     store = db.relationship("StoreModel", back_populates="items")
 
     tags = db.relationship("TagModel", back_populates="items", secondary="items_tags")
-
-    def json(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "price": self.price,
-            "store_id": self.store_id,
-            "tags": [tag.json() for tag in self.tags],
-        }
-
-    @classmethod
-    def find_by_name(cls, name):
-        return cls.query.filter_by(name=name).first()
-
-    @classmethod
-    def find_all(cls):
-        return cls.query.all()
-
-    def save_to_db(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def delete_from_db(self):
-        db.session.delete(self)
-        db.session.commit()

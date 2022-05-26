@@ -1,58 +1,42 @@
 from marshmallow import Schema, fields
 
 
-class ItemSchema(Schema):
+class PlainItemSchema(Schema):
     id = fields.Int(dump_only=True)
-    name = fields.Str(required=True, dump_only=True)
+    name = fields.Str(required=True)
     price = fields.Float(required=True)
+
+
+class PlainStoreSchema(Schema):
+    id = fields.Int(dump_only=True)
+    name = fields.Str()
+
+
+class PlainTagSchema(Schema):
+    id = fields.Int(dump_only=True)
+    name = fields.Str()
+
+
+class ItemSchema(PlainItemSchema):
     store_id = fields.Int(required=True, load_only=True)
-    store = fields.Nested(lambda: StoreWitoutItemsSchema(), dump_only=True)
-    tags = fields.List(fields.Nested(lambda: TagWithoutItemsSchema()), dump_only=True)
-
-
-class ItemWithoutStoreSchema(Schema):
-    id = fields.Int(dump_only=True)
-    name = fields.Str(required=True, dump_only=True)
-    price = fields.Float(required=True)
-    tags = fields.List(fields.Nested(lambda: TagWithoutItemsSchema()), dump_only=True)
-
-
-class ItemWithoutTagsSchema(Schema):
-    id = fields.Int(dump_only=True)
-    name = fields.Str(required=True, dump_only=True)
-    price = fields.Float(required=True)
-    store_id = fields.Int(required=True, load_only=True)
-    store = fields.Nested(lambda: StoreWitoutItemsSchema(), dump_only=True)
+    store = fields.Nested(lambda: PlainStoreSchema(), dump_only=True)
+    tags = fields.List(fields.Nested(lambda: PlainTagSchema()), dump_only=True)
 
 
 class ItemUpdateSchema(Schema):
-    price = fields.Float(required=True)
-
-
-class StoreSchema(Schema):
-    id = fields.Int()
     name = fields.Str()
-    items = fields.List(fields.Nested(ItemWithoutStoreSchema()), dump_only=True)
+    price = fields.Float()
 
 
-class StoreWitoutItemsSchema(Schema):
-    id = fields.Int()
-    name = fields.Str()
+class StoreSchema(PlainStoreSchema):
+    items = fields.List(fields.Nested(PlainItemSchema()), dump_only=True)
+    tags = fields.List(fields.Nested(lambda: PlainTagSchema()), dump_only=True)
 
 
-class TagSchema(Schema):
-    id = fields.Int()
-    name = fields.Str()
-    items = fields.List(fields.Nested(ItemWithoutTagsSchema()), dump_only=True)
-
-
-class TagWithoutItemsSchema(Schema):
-    id = fields.Int()
-    name = fields.Str()
-
-
-class TagUpdateSchema(Schema):
-    item_id = fields.Int()
+class TagSchema(PlainTagSchema):
+    store_id = fields.Int(load_only=True)
+    items = fields.List(fields.Nested(PlainItemSchema()), dump_only=True)
+    store = fields.Nested(PlainStoreSchema(), dump_only=True)
 
 
 class TagAndItemSchema(Schema):
@@ -62,6 +46,6 @@ class TagAndItemSchema(Schema):
 
 
 class UserSchema(Schema):
-    id = fields.Int()
-    username = fields.Str()
-    password = fields.Str(load_only=True)
+    id = fields.Int(dump_only=True)
+    username = fields.Str(required=True)
+    password = fields.Str(required=True, load_only=True)

@@ -9,6 +9,7 @@ from flask_jwt_extended import (
 )
 from passlib.hash import pbkdf2_sha256
 
+from db import db
 from models import UserModel
 from schemas import UserSchema
 from blocklist import BLOCKLIST
@@ -21,14 +22,15 @@ blp = Blueprint("Users", "users", description="Operations on users")
 class UserRegister(MethodView):
     @blp.arguments(UserSchema)
     def post(self, user_data):
-        if UserModel.find_by_username(user_data["username"]):
-            abort(400, message="A user with that username already exists.")
+        if UserModel.query.filter(UserModel.username == user_data["username"]).first():
+            abort(409, message="A user with that username already exists.")
 
         user = UserModel(
             username=user_data["username"],
             password=pbkdf2_sha256.hash(user_data["password"]),
         )
-        user.save_to_db()
+        db.session.add(user)
+        db.session.commit()
 
         return {"message": "User created successfully."}, 201
 
@@ -37,7 +39,9 @@ class UserRegister(MethodView):
 class UserLogin(MethodView):
     @blp.arguments(UserSchema)
     def post(self, user_data):
-        user = UserModel.find_by_username(user_data["username"])
+        user = UserModel.query.filter(
+            UserModel.username == user_data["username"]
+        ).first()
 
         if user and pbkdf2_sha256.verify(user_data["password"], user.password):
             access_token = create_access_token(identity=user.id, fresh=True)
@@ -68,17 +72,14 @@ class User(MethodView):
     @classmethod
     @blp.response(200, UserSchema)
     def get(cls, user_id: int):
-        user = UserModel.find_by_id(user_id)
-        if not user:
-            abort(404, message="User not found.")
+        user = UserModel.query.get_or_404(user_id)
         return user
 
     @classmethod
     def delete(cls, user_id: int):
-        user = UserModel.find_by_id(user_id)
-        if not user:
-            abort(404, message="User not found.")
-        user.delete_from_db()
+        user = UserModel.query.get_or_404(user_id)
+        db.session.delete(user)
+        db.session.commit()
         return {"message": "User deleted."}, 200
 
 
@@ -86,8 +87,9 @@ class User(MethodView):
 class TokenRefresh(MethodView):
     @jwt_required(refresh=True)
     def post(self):
-        # TODO: Add the refresh token to the blocklist so it can't be used again.
-        # Make it clear that when to add the refresh token to the blocklist will depend on the app design
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)
+        # Make it clear that when to add the refresh token to the blocklist will depend on the app design
+        jti = get_jwt()["jti"]
+        BLOCKLIST.add(jti)
         return {"access_token": new_token}, 200
