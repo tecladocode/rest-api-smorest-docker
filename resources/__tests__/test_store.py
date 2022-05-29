@@ -103,7 +103,7 @@ def test_delete_store_doesnt_exist(client):
     )
 
     assert response.status_code == 404
-    assert response.json["message"] == "Store not found."
+    assert response.json == {"code": 404, "status": "Not Found"}
 
 
 def test_get_store_list_empty(client):
