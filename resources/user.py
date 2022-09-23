@@ -69,14 +69,12 @@ class User(MethodView):
     when we are manipulating data regarding the users.
     """
 
-    @classmethod
     @blp.response(200, UserSchema)
-    def get(cls, user_id: int):
+    def get(self, user_id):
         user = UserModel.query.get_or_404(user_id)
         return user
 
-    @classmethod
-    def delete(cls, user_id: int):
+    def delete(self, user_id):
         user = UserModel.query.get_or_404(user_id)
         db.session.delete(user)
         db.session.commit()
