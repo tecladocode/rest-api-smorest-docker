@@ -9,3 +9,4 @@ gunicorn
 redis
 rq
 psycopg2
+requests
