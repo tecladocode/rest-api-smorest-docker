@@ -4,4 +4,8 @@ Flask-SQLAlchemy
 passlib
 marshmallow
 python-dotenv
+flask-migrate
 gunicorn
+redis
+rq
+psycopg2
