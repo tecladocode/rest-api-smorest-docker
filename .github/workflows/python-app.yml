@@ -37,3 +37,6 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
+        env:
+          RENDER_REDIS_URL: ${{ secrets.RENDER_REDIS_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
