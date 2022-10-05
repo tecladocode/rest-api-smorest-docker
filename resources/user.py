@@ -17,7 +17,7 @@ from tasks import send_user_registration_email
 
 from db import db
 from models import UserModel
-from schemas import UserSchema
+from schemas import UserSchema, UserRegisterSchema
 from blocklist import BLOCKLIST
 
 blp = Blueprint("Users", "users", description="Operations on users")
@@ -29,7 +29,7 @@ queue = Queue("emails", connection=connection)
 
 @blp.route("/register")
 class UserRegister(MethodView):
-    @blp.arguments(UserSchema)
+    @blp.arguments(UserRegisterSchema)
     def post(self, user_data):
         if UserModel.query.filter(
             or_(

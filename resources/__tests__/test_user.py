@@ -4,18 +4,19 @@ import pytest
 @pytest.fixture()
 def created_user_details(client):
     username = "test_user"
+    email = "test@example.net"
     password = "test_password"
     client.post(
         "/register",
-        json={"username": username, "password": password},
+        json={"username": username, "email": email, "password": password},
     )
 
-    return username, password
+    return username, email, password
 
 
 @pytest.fixture()
 def created_user_jwts(client, created_user_details):
-    username, password = created_user_details
+    username, email, password = created_user_details
     response = client.post(
         "/login",
         json={"username": username, "password": password},
@@ -26,9 +27,10 @@ def created_user_jwts(client, created_user_details):
 
 def test_register_user(client):
     username = "test_user"
+    email = "test@example.net"
     response = client.post(
         "/register",
-        json={"username": username, "password": "Test Password"},
+        json={"username": username, "email": email, "password": "Test Password"},
     )
 
     assert response.status_code == 201
@@ -37,18 +39,21 @@ def test_register_user(client):
 
 def test_register_user_already_exists(client):
     username = "test_user"
+    email = "test@example.net"
     client.post(
         "/register",
-        json={"username": username, "password": "Test Password"},
+        json={"username": username, "email": email, "password": "Test Password"},
     )
 
     response = client.post(
         "/register",
-        json={"username": username, "password": "Test Password"},
+        json={"username": username, "email": email, "password": "Test Password"},
     )
 
     assert response.status_code == 409
-    assert response.json["message"] == "A user with that username already exists."
+    assert (
+        response.json["message"] == "A user with that username or email already exists."
+    )
 
 
 def test_register_user_missing_data(client):
@@ -63,7 +68,7 @@ def test_register_user_missing_data(client):
 
 
 def test_login_user(client, created_user_details):
-    username, password = created_user_details
+    username, email, password = created_user_details
     response = client.post(
         "/login",
         json={"username": username, "password": password},
@@ -74,7 +79,7 @@ def test_login_user(client, created_user_details):
 
 
 def test_login_user_bad_password(client, created_user_details):
-    username, _ = created_user_details
+    username, _, _ = created_user_details
     response = client.post(
         "/login",
         json={"username": username, "password": "bad_password"},
@@ -85,7 +90,7 @@ def test_login_user_bad_password(client, created_user_details):
 
 
 def test_login_user_bad_username(client, created_user_details):
-    _, password = created_user_details
+    _, _, password = created_user_details
     response = client.post(
         "/login",
         json={"username": "bad_username", "password": password},
