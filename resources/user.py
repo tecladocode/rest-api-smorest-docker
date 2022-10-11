@@ -22,7 +22,7 @@ from blocklist import BLOCKLIST
 
 blp = Blueprint("Users", "users", description="Operations on users")
 connection = redis.from_url(
-    os.getenv("RENDER_REDIS_URL")
+    os.getenv("REDIS_URL")
 )  # Get this from Render.com or run in Docker
 queue = Queue("emails", connection=connection)
 

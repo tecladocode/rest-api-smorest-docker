@@ -38,4 +38,4 @@ jobs:
         run: |
           pytest
         env:
-          RENDER_REDIS_URL: ${{ secrets.RENDER_REDIS_URL }}
+          REDIS_URL: ${{ secrets.RENDER_REDIS_URL }}
