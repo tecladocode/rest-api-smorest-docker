@@ -10,3 +10,5 @@ redis
 rq
 psycopg2
 requests
+pydantic
+pydantic_settings

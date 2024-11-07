@@ -1,0 +1,38 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:80"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file:
+      - ./.env
+    volumes:
+      - .:/app
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=myapp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -d $${POSTGRES_DB} -U postgres
+      interval: 2s
+      retries: 10
+  redis:
+    image: redis:alpine
+  rq_worker:
+    build: .
+    depends_on:
+      - redis
+    env_file:
+      - ./.env
+    volumes:
+      - .:/app
+    command: /bin/bash -c "cd /app && rq worker -c settings"
+volumes:
+  postgres_data:

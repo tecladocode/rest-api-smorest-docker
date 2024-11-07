@@ -1,30 +1,28 @@
-import os
+
 import redis
 from flask.views import MethodView
+from flask_jwt_extended import (create_access_token, create_refresh_token,
+                                get_jwt, get_jwt_identity, jwt_required)
 from flask_smorest import Blueprint, abort
-from flask_jwt_extended import (
-    create_access_token,
-    create_refresh_token,
-    get_jwt_identity,
-    get_jwt,
-    jwt_required,
-)
 from passlib.hash import pbkdf2_sha256
-from sqlalchemy import or_
 from rq import Queue
+from sqlalchemy import or_
 
-from tasks import send_user_registration_email
-
+import config
+from blocklist import BLOCKLIST
 from db import db
 from models import UserModel
-from schemas import UserSchema, UserRegisterSchema
-from blocklist import BLOCKLIST
+from schemas import UserRegisterSchema, UserSchema
+from tasks import send_user_registration_email
 
 blp = Blueprint("Users", "users", description="Operations on users")
-connection = redis.from_url(
-    os.getenv("REDIS_URL")
-)  # Get this from Render.com or run in Docker
-queue = Queue("emails", connection=connection)
+if isinstance(config.config, config.TestConfig):
+    import fakeredis
+    connection = fakeredis.FakeStrictRedis()
+    queue = Queue("emails", is_async=False, connection=connection)
+else:
+    connection = redis.from_url(config.config.REDIS_URL)
+    queue = Queue("emails", connection=connection)
 
 
 @blp.route("/register")
